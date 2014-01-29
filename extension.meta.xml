@@ -2,7 +2,7 @@
 <extension id="remote_selectbox" status="experimental" xmlns="http://symphony-cms.com/schemas/extension/1.0">
 	<name>Field: Remote Select Box</name>
 	<description>
-		
+		This extension provides a simple combo box field that uses values from a remote source, via ajax.
 	</description>
 	<repo type="github">https://github.com/DeuxHuitHuit/remote_selectbox</repo>
 	<url type="discuss">https://github.com/DeuxHuitHuit/remote_selectbox/issues</url>
@@ -22,7 +22,7 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
-		<release version="0.1" date="2013-01-28" min="2.3.3">
+		<release version="1.0" date="2013-01-29" min="2.3.3">
 			- First release
 		</release>
 	</releases>
