@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension id="remote_selectbox" status="experimental" xmlns="http://symphony-cms.com/schemas/extension/1.0">
+	<name>Field: Remote Select Box</name>
+	<description>
+		
+	</description>
+	<repo type="github">https://github.com/DeuxHuitHuit/remote_selectbox</repo>
+	<url type="discuss">https://github.com/DeuxHuitHuit/remote_selectbox/issues</url>
+	<types>
+		<type>Field</type>
+		<type>Backend</type>
+		<type>Select Box</type>
+		<type>Ajax</type>
+	</types>
+	<authors>
+		<author>
+			<name github="DeuxHuitHuit" symphony="nitriques" twitter="DeuxHuitHuit">Deux Huit Huit</name>
+			<website>http://deuxhuithuit.com/</website>
+		</author>
+	</authors>
+	<dependencies>
+		<!-- None -->
+	</dependencies>
+	<releases>
+		<release version="0.1" date="2013-01-28" min="2.3.3">
+			- First release
+		</release>
+	</releases>
+</extension>
