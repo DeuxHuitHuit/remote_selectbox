@@ -24,6 +24,7 @@
 			$this->set('show_column', 'yes');
 			$this->set('location', 'sidebar');
 			$this->set('required', 'no');
+			$this->set('autocomplete', 'no');
 		}
 
 	/*-------------------------------------------------------------------------
@@ -88,6 +89,7 @@
 				  `data_url` text COLLATE utf8_unicode_ci,
 				  `allow_multiple_selection` enum('yes','no') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'no',
 				  `sort_options` enum('yes','no') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'no',
+				  `autocomplete` enum('yes','no') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'no',
 				  PRIMARY KEY (`id`),
 				  UNIQUE KEY `field_id` (`field_id`)
 				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -113,6 +115,7 @@
 		public function findDefaults(array &$settings){
 			if(!isset($settings['allow_multiple_selection'])) $settings['allow_multiple_selection'] = 'no';
 			if(!isset($settings['sort_options'])) $settings['sort_options'] = 'no';
+			if(!isset($settings['autocomplete'])) $settings['autocomplete'] = 'no';
 		}
 
 		public function displaySettingsPanel(XMLElement &$wrapper, $errors = null) {
@@ -130,7 +133,7 @@
 			if(isset($errors['data_url'])) $wrapper->appendChild(Widget::Error($div, $errors['data_url']));
 			else $wrapper->appendChild($div);
 			
-			$div = new XMLElement('div', NULL, array('class' => 'two columns'));
+			$div = new XMLElement('div', NULL, array('class' => 'three columns'));
 
 			// Allow selection of multiple items
 			$label = Widget::Label();
@@ -146,6 +149,14 @@
 			$input = Widget::Input('fields['.$this->get('sortorder').'][sort_options]', 'yes', 'checkbox');
 			if($this->get('sort_options') == 'yes') $input->setAttribute('checked', 'checked');
 			$label->setValue(__('%s Sort all options alphabetically', array($input->generate())));
+			$div->appendChild($label);
+
+			// Autocomplete?
+			$label = Widget::Label();
+			$label->setAttribute('class', 'column');
+			$input = Widget::Input('fields['.$this->get('sortorder').'][autocomplete]', 'yes', 'checkbox');
+			if($this->get('autocomplete') == 'yes') $input->setAttribute('checked', 'checked');
+			$label->setValue(__('%s Load autocomplete script', array($input->generate())));
 			$div->appendChild($label);
 			$wrapper->appendChild($div);
 
@@ -177,6 +188,7 @@
 			if($this->get('data_url') != '') $fields['data_url'] = $this->get('data_url');
 			$fields['allow_multiple_selection'] = ($this->get('allow_multiple_selection') ? $this->get('allow_multiple_selection') : 'no');
 			$fields['sort_options'] = $this->get('sort_options') == 'yes' ? 'yes' : 'no';
+			$fields['autocomplete'] = $this->get('autocomplete') == 'yes' ? 'yes' : 'no';
 
 			return FieldManager::saveSettings($id, $fields);
 		}
@@ -214,7 +226,9 @@
 			$select = Widget::Select($fieldname, $options, ($this->get('allow_multiple_selection') == 'yes' ? array('multiple' => 'multiple', 'size' => count($options)) : NULL));
 			
 			$select->setAttribute('data-value', implode(',',$value));
-			$select->setAttribute('class', 'chosen-select');
+			if($this->get('autocomplete')=='yes'){
+				$select->setAttribute('class', 'autocomplete');
+			}
 			$select->setAttribute('data-url', $this->get('data_url'));
 			$select->setAttribute('data-required', $this->get('required') == 'yes');
 			

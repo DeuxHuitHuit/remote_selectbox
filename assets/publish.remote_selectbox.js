@@ -10,16 +10,12 @@
 	
 	var initOne = function () {
 		var t = $(this);
-		
-		
-		
 
 		$.get(t.attr('data-url'), function (data) {
 			if (!!data && !!data.length) {
 				var options = [];
 				var selectedValue = t.attr('data-value');
 				var getSelected = selectedValue.split(',');
-
 				var required = ~~t.attr('data-required');
 				
 				if (required) {
@@ -38,14 +34,12 @@
 					options.push(o);
 				});
 				t.append(options);
-				t.chosen({allow_single_deselect: true});
-				t.trigger('chosen:updated');
-				//var clear = t.next('.chosen-container-multi')? '<a class="clearoptions">Clear Selected Options</a>':'';
-				//t.before(clear);
+				t.hasClass('autocomplete')? t.selectize({plugins: ['remove_button','restore_on_backspace']}):'';
 			}
 		});
 	};
 
+	//Find ID in array
 	function oc(a){
 		var o = {};
 		for(var i=0;i<a.length;i++){
@@ -56,11 +50,6 @@
 
 	var init = function () {
 		$('#contents div.field-remote_selectbox select').each(initOne);
-		/*$('.clearoptions').on('click',function(){
-			return false;
-			var b = $(this);
-			console.log('clicked');
-		});*/
 	};
 	
 	$(init);

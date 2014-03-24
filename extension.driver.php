@@ -58,18 +58,21 @@
 			
 			// publish page
 			if($c['driver'] == 'publish'){
-								
-				Administration::instance()->Page->addScriptToHead(
-					URL . '/extensions/remote_selectbox/assets/lib/chosen/chosen.jquery.min.js',
-					time(),
-					false
-				);
-				Administration::instance()->Page->addStylesheetToHead(
-					URL . '/extensions/remote_selectbox/assets/lib/chosen/chosen.min.css',
-					'screen',
-					time(),
-					false
-				);
+				
+				//Load Selectize if Autocomplete is set to yes
+							
+					Administration::instance()->Page->addScriptToHead(
+						URL . '/extensions/remote_selectbox/assets/lib/selectize/selectize.min.js',
+						time(),
+						false
+					);
+					Administration::instance()->Page->addStylesheetToHead(
+						URL . '/extensions/remote_selectbox/assets/lib/selectize/selectize.css',
+						'screen',
+						time(),
+						false
+					);
+				
 				Administration::instance()->Page->addScriptToHead(
 					URL . '/extensions/remote_selectbox/assets/publish.remote_selectbox.js',
 					time(),
