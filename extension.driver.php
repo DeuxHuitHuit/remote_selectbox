@@ -58,21 +58,23 @@
 			
 			// publish page
 			if($c['driver'] == 'publish'){
-				
-				//var_dump($context, $c);die;
-				
+								
+				Administration::instance()->Page->addScriptToHead(
+					URL . '/extensions/remote_selectbox/assets/lib/chosen/chosen.jquery.min.js',
+					time(),
+					false
+				);
+				Administration::instance()->Page->addStylesheetToHead(
+					URL . '/extensions/remote_selectbox/assets/lib/chosen/chosen.min.css',
+					'screen',
+					time(),
+					false
+				);
 				Administration::instance()->Page->addScriptToHead(
 					URL . '/extensions/remote_selectbox/assets/publish.remote_selectbox.js',
 					time(),
 					false
 				);
-				/*
-				Administration::instance()->Page->addStylesheetToHead(
-					URL . '/extensions/remote_selectbox/assets/publish.remote_selectbox.css',
-					'screen',
-					time() + 1,
-					false
-				);*/
 			}
 		}
 		

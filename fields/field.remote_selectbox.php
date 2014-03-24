@@ -133,21 +133,21 @@
 			$div = new XMLElement('div', NULL, array('class' => 'two columns'));
 
 			// Allow selection of multiple items
-			/*$label = Widget::Label();
+			$label = Widget::Label();
 			$label->setAttribute('class', 'column');
 			$input = Widget::Input('fields['.$this->get('sortorder').'][allow_multiple_selection]', 'yes', 'checkbox');
 			if($this->get('allow_multiple_selection') == 'yes') $input->setAttribute('checked', 'checked');
 			$label->setValue(__('%s Allow selection of multiple options', array($input->generate())));
-			$div->appendChild($label);*/
+			$div->appendChild($label);
 
 			// Sort options?
-			/*$label = Widget::Label();
+			$label = Widget::Label();
 			$label->setAttribute('class', 'column');
 			$input = Widget::Input('fields['.$this->get('sortorder').'][sort_options]', 'yes', 'checkbox');
 			if($this->get('sort_options') == 'yes') $input->setAttribute('checked', 'checked');
 			$label->setValue(__('%s Sort all options alphabetically', array($input->generate())));
 			$div->appendChild($label);
-			$wrapper->appendChild($div);*/
+			$wrapper->appendChild($div);
 
 			$div = new XMLElement('div', NULL, array('class' => 'two columns'));
 			$this->appendShowColumnCheckbox($div);
@@ -186,7 +186,7 @@
 	-------------------------------------------------------------------------*/
 
 		public function displayPublishPanel(XMLElement &$wrapper, $data = null, $flagWithError = null, $fieldnamePrefix = null, $fieldnamePostfix = null, $entry_id = null){
-			//$states = $this->getToggleStates();
+			$states = $this->getToggleStates();
 			$value = isset($data['value']) ? $data['value'] : null;
 			
 			if(!is_array($value)) $value = array($value);
@@ -195,9 +195,9 @@
 				array(null, false, null)
 			);
 			
-			/*foreach($states as $handle => $v){
+			foreach($states as $handle => $v){
 				$options[] = array(General::sanitize($v), in_array($v, $value), General::sanitize($v));
-			}*/
+			}
 			
 			$fieldname = 'fields'.$fieldnamePrefix.'['.$this->get('element_name').']'.$fieldnamePostfix;
 			
@@ -214,6 +214,7 @@
 			$select = Widget::Select($fieldname, $options, ($this->get('allow_multiple_selection') == 'yes' ? array('multiple' => 'multiple', 'size' => count($options)) : NULL));
 			
 			$select->setAttribute('data-value', implode(',',$value));
+			$select->setAttribute('class', 'chosen-select');
 			$select->setAttribute('data-url', $this->get('data_url'));
 			$select->setAttribute('data-required', $this->get('required') == 'yes');
 			
@@ -226,7 +227,11 @@
 		public function processRawFieldData($data, &$status, &$message=null, $simulate=false, $entry_id=NULL){
 			$status = self::__OK__;
 
-			if(!is_array($data)) {
+			if(is_array($data)){	
+				$data = implode($data,',');
+			}
+
+			/*if(!is_array($data)) {
 				return array(
 					'value' => $data,
 					'handle' => Lang::createHandle($data)
@@ -243,7 +248,12 @@
 			foreach($data as $value){
 				$result['value'][] = $value;
 				$result['handle'][] = Lang::createHandle($value);
-			}
+			}*/
+
+
+			$result['value'] = $data;
+			$result['handle'] = $data;
+			//var_dump($result);die;
 
 			return $result;
 		}
