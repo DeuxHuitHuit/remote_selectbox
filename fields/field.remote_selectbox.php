@@ -133,7 +133,9 @@
 			if(isset($errors['data_url'])) $wrapper->appendChild(Widget::Error($div, $errors['data_url']));
 			else $wrapper->appendChild($div);
 			
+			$fieldset = new XMLElement('fieldset');
 			$div = new XMLElement('div', NULL, array('class' => 'three columns'));
+			
 
 			// Allow selection of multiple items
 			$label = Widget::Label();
@@ -156,14 +158,17 @@
 			$label->setAttribute('class', 'column');
 			$input = Widget::Input('fields['.$this->get('sortorder').'][autocomplete]', 'yes', 'checkbox');
 			if($this->get('autocomplete') == 'yes') $input->setAttribute('checked', 'checked');
-			$label->setValue(__('%s Load autocomplete script', array($input->generate())));
+			$label->setValue(__('%s Autocomplete search of select items', array($input->generate())));
 			$div->appendChild($label);
-			$wrapper->appendChild($div);
+			$fieldset->appendChild($div);
+			$wrapper->appendChild($fieldset);
 
+			$fieldset = new XMLElement('fieldset');
 			$div = new XMLElement('div', NULL, array('class' => 'two columns'));
 			$this->appendShowColumnCheckbox($div);
 			$this->appendRequiredCheckbox($div);
-			$wrapper->appendChild($div);
+			$fieldset->appendChild($div);
+			$wrapper->appendChild($fieldset);
 		}
 
 		public function checkFields(array &$errors, $checkForDuplicates = true){
