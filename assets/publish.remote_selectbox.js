@@ -24,7 +24,7 @@
 				
 				$.each(data, function (index, d) {
 					var o = $('<option />')
-						.attr('value', d.value)
+						.attr('value', d.value+'|'+d.text)
 						.text(d.text);
 					
 					if (d.value in oc(getSelected)) {
@@ -34,11 +34,17 @@
 					options.push(o);
 				});
 				t.append(options);
+				
 				t.hasClass('autocomplete')? t.selectize({plugins: ['remove_button','restore_on_backspace']}):'';
+				if(t.attr('data-order') == 'aplhabetical'){
+					t.selectize({
+						sortField:'value'
+					});
+				}
 			}
 		});
 	};
-
+	
 	//Find ID in array
 	function oc(a){
 		var o = {};

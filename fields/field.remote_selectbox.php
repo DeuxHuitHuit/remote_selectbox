@@ -25,6 +25,7 @@
 			$this->set('location', 'sidebar');
 			$this->set('required', 'no');
 			$this->set('autocomplete', 'no');
+			$this->set('alphabetical', 'no');
 		}
 
 	/*-------------------------------------------------------------------------
@@ -234,6 +235,9 @@
 			if($this->get('autocomplete')=='yes'){
 				$select->setAttribute('class', 'autocomplete');
 			}
+			if($this->get('sort_options') == 'yes'){
+				$select->setAttribute('data-order', 'alphabetical');
+			}
 			$select->setAttribute('data-url', $this->get('data_url'));
 			$select->setAttribute('data-required', $this->get('required') == 'yes');
 			
@@ -245,10 +249,26 @@
 
 		public function processRawFieldData($data, &$status, &$message=null, $simulate=false, $entry_id=NULL){
 			$status = self::__OK__;
-
-			if(is_array($data)){	
-				$data = implode($data,',');
+			if(is_array($data)){
+				$i = [];
+				foreach($data as $entry => $key){
+					$ids = explode('|',$key);
+					foreach($ids as $id => $val){
+						if(is_numeric($val)){
+							$i[] = $val;
+						}
+						if(!is_numeric($val)){
+							$h[] = $val;
+						}
+					}
+					
+				}						
+				$result['value'] = implode($i,',');
+				$result['handle'] = implode($h,',');								
 			}
+			/*if(is_array($data)){	
+				$data = implode($data,',');
+			}*/
 
 			/*if(!is_array($data)) {
 				return array(
@@ -270,8 +290,8 @@
 			}*/
 
 
-			$result['value'] = $data;
-			$result['handle'] = $data;
+			//$result['value'] = $data;
+			//$result['handle'] = $data;
 			//var_dump($result);die;
 
 			return $result;
@@ -283,7 +303,7 @@
 
 		public function appendFormattedElement(XMLElement &$wrapper, $data, $encode = false, $mode = null, $entry_id = null) {
 			if (!is_array($data) or is_null($data['value'])) return;
-
+			
 			$list = new XMLElement($this->get('element_name'));
 
 			if (!is_array($data['handle']) and !is_array($data['value'])) {
@@ -291,25 +311,35 @@
 					'handle'	=> array($data['handle']),
 					'value'		=> array($data['value'])
 				);
-			}
-
-			foreach ($data['value'] as $index => $value) {
+			}			
+			$data = array_merge($data['value'],$data['handle']);			
+			$d['handle'] = explode(',',$data[0]);
+			$d['value'] = explode(',',$data[1]);			
+			$d = array_combine($d['handle'],$d['value']);			
+			foreach($d as $index => $value){
 				$list->appendChild(new XMLElement(
 					'item',
 					General::sanitize($value),
 					array(
-						'handle'	=> $data['handle'][$index]
+						'id' => $index,
+						'handle'	=> $value
 					)
-				));
-			}
-
+				));				
+			}		
 			$wrapper->appendChild($list);
 		}
 
 		public function prepareTableValue($data, XMLElement $link=NULL, $entry_id = null){
 			$value = $this->prepareExportValue($data, ExportableField::LIST_OF + ExportableField::VALUE, $entry_id);
-
-			return parent::prepareTableValue(array('value' => implode(', ', $value)), $link, $entry_id = null);
+			$data = explode(',',$data['handle']);					
+			$check = count($data);			
+			if($check > 1){
+				$check = '('.$check.')  Selected';
+			}
+			else{
+				$check = $data[0];
+			}				
+			return parent::prepareTableValue(array('value' => $check), $link, $entry_id = null);
 		}
 
 		public function getParameterPoolValue(array $data, $entry_id = null) {
