@@ -73,6 +73,7 @@
 				  `id` int(11) unsigned NOT NULL auto_increment,
 				  `entry_id` int(11) unsigned NOT NULL,
 				  `handle` varchar(255) default NULL,
+				  `select_handle` varchar(255) default NULL,
 				  `value` varchar(255) default NULL,
 				  PRIMARY KEY  (`id`),
 				  UNIQUE KEY `entry_id` (`entry_id`),
@@ -218,7 +219,7 @@
 			}
 			
 			$fieldname = 'fields'.$fieldnamePrefix.'['.$this->get('element_name').']'.$fieldnamePostfix;
-			
+			$fieldnamehandle = 'fields'.$fieldnamePrefix.'['.$this->get('element_name').'_handle]'.$fieldnamePostfix;
 			if($this->get('allow_multiple_selection') == 'yes') {
 				$fieldname .= '[]';
 			}
@@ -228,7 +229,9 @@
 			if($this->get('required') != 'yes') {
 				$label->appendChild(new XMLElement('i', __('Optional')));
 			}
-			
+			$hidden = Widget::Input($fieldnamehandle,$data['handle'],'hidden');// needs a name field['']
+			$label->appendChild($hidden);
+			// hidden inputs cant be used in single field extension 
 			$select = Widget::Select($fieldname, $options, ($this->get('allow_multiple_selection') == 'yes' ? array('multiple' => 'multiple', 'size' => count($options),'id' => 'sort') : NULL));
 			
 			$select->setAttribute('data-value', implode(',',$value));
@@ -246,26 +249,39 @@
 			if($flagWithError != null) $wrapper->appendChild(Widget::Error($label, $flagWithError));
 			else $wrapper->appendChild($label);
 		}
-
+		/*************************ERROR CHECKING FOR CHARACTERS*********************************************************/
+		function processChars($val){
+				$chars = array('|',',','.','@','*','!','&');		
+				$all = Lang::createHandle($val,255,',',false,$chars);					
+				return $all;			
+		}
+		/**********************************************************************************/
 		public function processRawFieldData($data, &$status, &$message=null, $simulate=false, $entry_id=NULL){
 			$status = self::__OK__;
+			//var_dump($data);die; //from here
 			if(is_array($data)){
 				$i = [];
 				foreach($data as $entry => $key){
 					$ids = explode('|',$key);
+					//var_dump($ids);
 					foreach($ids as $id => $val){
 						if(is_numeric($val)){
 							$i[] = $val;
 						}
-						if(!is_numeric($val)){
-							$h[] = $val;
+						if(!is_numeric($val)){							
+							$h['text'] = $val;
+							$h['handle'] = $this->processChars($val);
+							$j[] = implode($h,'~');
 						}
 					}
 					
-				}						
+				}
+					
 				$result['value'] = implode($i,',');
-				$result['handle'] = implode($h,',');								
+				$result['handle'] = implode($j,'|');
+				//var_dump($result);die;
 			}
+			
 			/*if(is_array($data)){	
 				$data = implode($data,',');
 			}*/
@@ -300,38 +316,48 @@
 	/*-------------------------------------------------------------------------
 		Output:
 	-------------------------------------------------------------------------*/
-
+function array_combine2($arr1, $arr2) {
+    $count = min(count($arr1), count($arr2));
+    return array_combine(array_slice($arr1, 0, $count), array_slice($arr2, 0, $count));
+}
 		public function appendFormattedElement(XMLElement &$wrapper, $data, $encode = false, $mode = null, $entry_id = null) {
 			if (!is_array($data) or is_null($data['value'])) return;
 			
 			$list = new XMLElement($this->get('element_name'));
-
+			
 			if (!is_array($data['handle']) and !is_array($data['value'])) {
 				$data = array(
 					'handle'	=> array($data['handle']),
 					'value'		=> array($data['value'])
 				);
-			}			
+			}
+			
 			$data = array_merge($data['value'],$data['handle']);			
-			$d['handle'] = explode(',',$data[0]);
-			$d['value'] = explode(',',$data[1]);			
-			$d = array_combine($d['handle'],$d['value']);			
+		
+			$d['handle'] = explode(',',$data[0]);		
+			$d['value'] = explode('|',$data[1]);		
+				
+			$d = $this->array_combine2($d['handle'],$d['value']);//array_combine($d['handle'],$d['value']);			
+		
 			foreach($d as $index => $value){
+				$v = explode('~',$value);
 				$list->appendChild(new XMLElement(
 					'item',
-					General::sanitize($value),
+					General::sanitize($v[0]),
 					array(
 						'id' => $index,
-						'handle'	=> $value
+						'handle'	=> Lang::createHandle($v[1])
 					)
 				));				
-			}		
+			}	
+			//var_dump($v);die;	
 			$wrapper->appendChild($list);
 		}
 
 		public function prepareTableValue($data, XMLElement $link=NULL, $entry_id = null){
 			$value = $this->prepareExportValue($data, ExportableField::LIST_OF + ExportableField::VALUE, $entry_id);
-			$data = explode(',',$data['handle']);					
+			//var_dump($data);
+			$data = explode('|',$data['handle']);					
 			$check = count($data);			
 			if($check > 1){
 				$check = '('.$check.')  Selected';
