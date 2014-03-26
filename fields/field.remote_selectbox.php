@@ -229,7 +229,7 @@
 				$label->appendChild(new XMLElement('i', __('Optional')));
 			}
 			
-			$select = Widget::Select($fieldname, $options, ($this->get('allow_multiple_selection') == 'yes' ? array('multiple' => 'multiple', 'size' => count($options)) : NULL));
+			$select = Widget::Select($fieldname, $options, ($this->get('allow_multiple_selection') == 'yes' ? array('multiple' => 'multiple', 'size' => count($options),'id' => 'sort') : NULL));
 			
 			$select->setAttribute('data-value', implode(',',$value));
 			if($this->get('autocomplete')=='yes'){

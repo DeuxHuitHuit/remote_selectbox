@@ -34,18 +34,30 @@
 					options.push(o);
 				});
 				t.append(options);
-				
-				t.hasClass('autocomplete')? t.selectize({plugins: ['remove_button','restore_on_backspace']}):'';
-				if(t.attr('data-order') == 'aplhabetical'){
-					t.selectize({
-						sortField:'value'
-					});
+				if(t.attr('data-order') == 'alphabetical'){
+					sortByText()
 				}
+				t.hasClass('autocomplete')? t.selectize({plugins: ['remove_button','restore_on_backspace']}):'';
+				
 			}
 		});
-	};
-	
-	//Find ID in array
+	};	
+function sortByText() {
+
+// Loop for each select element on the page.
+$('#sort').each(function() {
+// Keep track of the selected option.
+var selectedValue = $(this).val();
+// Sort all the options by text. I could easily sort these by val.
+$(this).html($('option', $(this)).sort(function(a, b) {
+return a.text.toUpperCase() == b.text.toUpperCase() ? 0 : a.text.toUpperCase() < b.text.toUpperCase() ? -1 : 1
+}));
+// Select one option.
+$(this).val(selectedValue);
+});
+}
+
+
 	function oc(a){
 		var o = {};
 		for(var i=0;i<a.length;i++){
