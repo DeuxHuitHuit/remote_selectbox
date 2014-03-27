@@ -219,7 +219,7 @@
 			}
 			
 			$fieldname = 'fields'.$fieldnamePrefix.'['.$this->get('element_name').']'.$fieldnamePostfix;
-			$fieldnamehandle = 'fields'.$fieldnamePrefix.'['.$this->get('element_name').'_handle]'.$fieldnamePostfix;
+			$fieldnamehandle = 'fields'.$fieldnamePrefix.'['.$this->get('element_name').'][handle]'.$fieldnamePostfix;
 			if($this->get('allow_multiple_selection') == 'yes') {
 				$fieldname .= '[]';
 			}
@@ -229,7 +229,11 @@
 			if($this->get('required') != 'yes') {
 				$label->appendChild(new XMLElement('i', __('Optional')));
 			}
-			$hidden = Widget::Input($fieldnamehandle,$data['handle'],'hidden');// needs a name field['']
+			//var_dump($data);
+		//	die;
+			//var_dump($data['handle']);die;
+			//$data['handle'] is the values needed for input produced by js
+			$hidden = Widget::Input($fieldnamehandle,$data['handle'],'hidden',array('class'=>'values'));// needs a name field['']
 			$label->appendChild($hidden);
 			// hidden inputs cant be used in single field extension 
 			$select = Widget::Select($fieldname, $options, ($this->get('allow_multiple_selection') == 'yes' ? array('multiple' => 'multiple', 'size' => count($options),'id' => 'sort') : NULL));
@@ -259,26 +263,29 @@
 		public function processRawFieldData($data, &$status, &$message=null, $simulate=false, $entry_id=NULL){
 			$status = self::__OK__;
 			//var_dump($data);die; //from here
+			//var_dump($data);die;
+			$ids = $data['handle'];
+			
+			unset($data['handle']);
 			if(is_array($data)){
-				$i = [];
-				foreach($data as $entry => $key){
-					$ids = explode('|',$key);
-					//var_dump($ids);
-					foreach($ids as $id => $val){
-						if(is_numeric($val)){
-							$i[] = $val;
-						}
-						if(!is_numeric($val)){							
-							$h['text'] = $val;
-							$h['handle'] = $this->processChars($val);
-							$j[] = implode($h,'~');
-						}
-					}
+				//$i = [];
+				//var_dump($data);
+				$i = implode(',',$data);
+				/*foreach($data as $entry => $key){
+					foreach($ids as $id => $val){*/
+						/*if(is_numeric($val)){*/
+							//$i[] = $val;
+						/*}	*/
+						/*if(!is_numeric($val)){
+							$h[] = $val;
+						}*/						
+					//}
 					
-				}
-					
-				$result['value'] = implode($i,',');
-				$result['handle'] = implode($j,'|');
+				//}
+					//var_dump($i);die;
+					$result['handle'] = $ids;
+				$result['value'] = $i;//implode($i,',');
+				//$result['handle'] = implode($h,',');
 				//var_dump($result);die;
 			}
 			
@@ -335,18 +342,18 @@ function array_combine2($arr1, $arr2) {
 			$data = array_merge($data['value'],$data['handle']);			
 		
 			$d['handle'] = explode(',',$data[0]);		
-			$d['value'] = explode('|',$data[1]);		
+			$d['value'] = explode(',',$data[1]);		
 				
 			$d = $this->array_combine2($d['handle'],$d['value']);//array_combine($d['handle'],$d['value']);			
 		
 			foreach($d as $index => $value){
-				$v = explode('~',$value);
+				//$v = explode('~',$value);
 				$list->appendChild(new XMLElement(
 					'item',
-					General::sanitize($v[0]),
+					General::sanitize($value),
 					array(
 						'id' => $index,
-						'handle'	=> Lang::createHandle($v[1])
+						'handle'	=> Lang::createHandle($value)
 					)
 				));				
 			}	
@@ -356,8 +363,8 @@ function array_combine2($arr1, $arr2) {
 
 		public function prepareTableValue($data, XMLElement $link=NULL, $entry_id = null){
 			$value = $this->prepareExportValue($data, ExportableField::LIST_OF + ExportableField::VALUE, $entry_id);
-			//var_dump($data);
-			$data = explode('|',$data['handle']);					
+			//var_dump($data);die;
+			$data = explode(',',$data['handle']);					
 			$check = count($data);			
 			if($check > 1){
 				$check = '('.$check.')  Selected';
