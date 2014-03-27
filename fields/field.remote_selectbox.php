@@ -25,6 +25,7 @@
 			$this->set('location', 'sidebar');
 			$this->set('required', 'no');
 			$this->set('autocomplete', 'no');
+			$this->set('alphabetical', 'no');
 		}
 
 	/*-------------------------------------------------------------------------
@@ -72,6 +73,7 @@
 				  `id` int(11) unsigned NOT NULL auto_increment,
 				  `entry_id` int(11) unsigned NOT NULL,
 				  `handle` varchar(255) default NULL,
+				  `select_handle` varchar(255) default NULL,
 				  `value` varchar(255) default NULL,
 				  PRIMARY KEY  (`id`),
 				  UNIQUE KEY `entry_id` (`entry_id`),
@@ -120,23 +122,19 @@
 
 		public function displaySettingsPanel(XMLElement &$wrapper, $errors = null) {
 			parent::displaySettingsPanel($wrapper, $errors);
-
 			$div = new XMLElement('div', NULL, array('class' => ''));
-
+			
 			// Predefined Values
 			$label = Widget::Label(__('Data url'));
 			$label->setAttribute('class', 'column');
 			$input = Widget::Input('fields['.$this->get('sortorder').'][data_url]', General::sanitize($this->get('data_url')));
 			$label->appendChild($input);
 			$div->appendChild($label);
-			
 			if(isset($errors['data_url'])) $wrapper->appendChild(Widget::Error($div, $errors['data_url']));
 			else $wrapper->appendChild($div);
-			
 			$fieldset = new XMLElement('fieldset');
 			$div = new XMLElement('div', NULL, array('class' => 'three columns'));
 			
-
 			// Allow selection of multiple items
 			$label = Widget::Label();
 			$label->setAttribute('class', 'column');
@@ -205,111 +203,96 @@
 		public function displayPublishPanel(XMLElement &$wrapper, $data = null, $flagWithError = null, $fieldnamePrefix = null, $fieldnamePostfix = null, $entry_id = null){
 			$states = $this->getToggleStates();
 			$value = isset($data['value']) ? $data['value'] : null;
-			
 			if(!is_array($value)) $value = array($value);
-			
 			$options = array(
 				array(null, false, null)
 			);
-			
 			foreach($states as $handle => $v){
 				$options[] = array(General::sanitize($v), in_array($v, $value), General::sanitize($v));
 			}
-			
 			$fieldname = 'fields'.$fieldnamePrefix.'['.$this->get('element_name').']'.$fieldnamePostfix;
-			
+			$fieldnamehandle = 'fields'.$fieldnamePrefix.'['.$this->get('element_name').'][handle]'.$fieldnamePostfix;
 			if($this->get('allow_multiple_selection') == 'yes') {
 				$fieldname .= '[]';
 			}
-			
 			$label = Widget::Label($this->get('label'));
-			
 			if($this->get('required') != 'yes') {
 				$label->appendChild(new XMLElement('i', __('Optional')));
 			}
-			
-			$select = Widget::Select($fieldname, $options, ($this->get('allow_multiple_selection') == 'yes' ? array('multiple' => 'multiple', 'size' => count($options)) : NULL));
-			
+			$hidden = Widget::Input($fieldnamehandle,$data['handle'],'hidden',array('class'=>'values'));
+			$label->appendChild($hidden);
+			$select = Widget::Select($fieldname, $options, ($this->get('allow_multiple_selection') == 'yes' ? array('multiple' => 'multiple', 'size' => count($options),'id' => 'sort') : NULL));
 			$select->setAttribute('data-value', implode(',',$value));
 			if($this->get('autocomplete')=='yes'){
 				$select->setAttribute('class', 'autocomplete');
 			}
+			if($this->get('sort_options') == 'yes'){
+				$select->setAttribute('data-order', 'alphabetical');
+			}
 			$select->setAttribute('data-url', $this->get('data_url'));
 			$select->setAttribute('data-required', $this->get('required') == 'yes');
-			
 			$label->appendChild($select);
-			
 			if($flagWithError != null) $wrapper->appendChild(Widget::Error($label, $flagWithError));
 			else $wrapper->appendChild($label);
-		}
-
+		}		
 		public function processRawFieldData($data, &$status, &$message=null, $simulate=false, $entry_id=NULL){
 			$status = self::__OK__;
-
-			if(is_array($data)){	
-				$data = implode($data,',');
+			$ids = $data['handle'];
+			unset($data['handle']);
+			if(is_array($data)){
+				$i = implode(',',$data);
+				$result['handle'] = $ids;
+				$result['value'] = $i;
 			}
-
-			/*if(!is_array($data)) {
-				return array(
-					'value' => $data,
-					'handle' => Lang::createHandle($data)
-				);
-			}
-
-			if(empty($data)) return null;
-
-			$result = array(
-				'value' => array(),
-				'handle' => array()
-			);
-
-			foreach($data as $value){
-				$result['value'][] = $value;
-				$result['handle'][] = Lang::createHandle($value);
-			}*/
-
-
-			$result['value'] = $data;
-			$result['handle'] = $data;
-			//var_dump($result);die;
-
 			return $result;
 		}
-
 	/*-------------------------------------------------------------------------
 		Output:
 	-------------------------------------------------------------------------*/
-
+		function array_combine2($arr1, $arr2) {
+			$count = min(count($arr1), count($arr2));
+			return array_combine(array_slice($arr1, 0, $count), array_slice($arr2, 0, $count));
+		}
+		
 		public function appendFormattedElement(XMLElement &$wrapper, $data, $encode = false, $mode = null, $entry_id = null) {
 			if (!is_array($data) or is_null($data['value'])) return;
-
+			
 			$list = new XMLElement($this->get('element_name'));
-
+			
 			if (!is_array($data['handle']) and !is_array($data['value'])) {
 				$data = array(
 					'handle'	=> array($data['handle']),
 					'value'		=> array($data['value'])
 				);
 			}
-
-			foreach ($data['value'] as $index => $value) {
+			$data = array_merge($data['value'],$data['handle']);			
+			$d['handle'] = explode(',',$data[0]);		
+			$d['value'] = explode(',',$data[1]);		
+			$d = $this->array_combine2($d['handle'],$d['value']);	
+			foreach($d as $index => $value){
 				$list->appendChild(new XMLElement(
 					'item',
 					General::sanitize($value),
 					array(
-						'handle'	=> $data['handle'][$index]
+						'id' => $index,
+						'handle'	=> Lang::createHandle($value)
 					)
-				));
-			}
-
+				));				
+			}	
 			$wrapper->appendChild($list);
 		}
 
 		public function prepareTableValue($data, XMLElement $link=NULL, $entry_id = null){
 			$value = $this->prepareExportValue($data, ExportableField::LIST_OF + ExportableField::VALUE, $entry_id);
-
-			return parent::prepareTableValue(array('value' => implode(', ', $value)), $link, $entry_id = null);
+			$data = explode(',',$data['handle']);					
+			$check = count($data);			
+			if($check > 1){
+				$check = '('.$check.')  Selected';
+			}
+			else{
+				$check = $data[0];
+			}				
+			return parent::prepareTableValue(array('value' => $check), $link, $entry_id = null);
 		}
 
 		public function getParameterPoolValue(array $data, $entry_id = null) {
