@@ -1,8 +1,6 @@
 # Remote Select Box #
 
-Version: 1.0
-
-This extension provides a simple combo box field that uses values from a remote source, via ajax.
+> This extension provides a simple combo box field that uses values from a remote source, via ajax.
 
 ### REQUIREMENTS ###
 
