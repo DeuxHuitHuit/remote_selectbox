@@ -72,6 +72,7 @@
 				  `entry_id` int(11) unsigned NOT NULL,
 				  `handle` varchar(255) default NULL,
 				  `value` varchar(255) default NULL,
+				  `text` TEXT default NULL,
 				  PRIMARY KEY  (`id`),
 				  UNIQUE KEY `entry_id` (`entry_id`),
 				  KEY `handle` (`handle`),
@@ -211,11 +212,12 @@
 				$label->appendChild(new XMLElement('i', __('Optional')));
 			}
 			
-			$select = Widget::Select($fieldname, $options, ($this->get('allow_multiple_selection') == 'yes' ? array('multiple' => 'multiple', 'size' => count($options)) : NULL));
+			$select = Widget::Select($fieldname . '[value]', $options, ($this->get('allow_multiple_selection') == 'yes' ? array('multiple' => 'multiple', 'size' => count($options)) : NULL));
 			
 			$select->setAttribute('data-value', implode(',',$value));
 			$select->setAttribute('data-url', $this->get('data_url'));
 			$select->setAttribute('data-required', $this->get('required') == 'yes');
+			$select->setAttribute('data-field-name', $fieldname);
 			
 			$label->appendChild($select);
 			
@@ -225,24 +227,31 @@
 
 		public function processRawFieldData($data, &$status, &$message=null, $simulate=false, $entry_id=NULL){
 			$status = self::__OK__;
+			
+			if(empty($data)) return null;
 
 			if(!is_array($data)) {
 				return array(
 					'value' => $data,
 					'handle' => Lang::createHandle($data)
 				);
+			} elseif (!is_numeric(current(array_keys($data)))) {
+				$data = array($data);
 			}
-
-			if(empty($data)) return null;
 
 			$result = array(
 				'value' => array(),
-				'handle' => array()
+				'handle' => array(),
+				'text' => array(),
 			);
 
 			foreach($data as $value){
-				$result['value'][] = $value;
-				$result['handle'][] = Lang::createHandle($value);
+				if (!is_array($value)) {
+					$value = array('value' => $value);
+				}
+				$result['value'][] = $value['value'];
+				$result['handle'][] = Lang::createHandle($value['value']);
+				$result['text'][] = $value['text'];
 			}
 
 			return $result;
@@ -278,7 +287,7 @@
 		}
 
 		public function prepareTableValue($data, XMLElement $link=NULL, $entry_id = null){
-			$value = $this->prepareExportValue($data, ExportableField::LIST_OF + ExportableField::VALUE, $entry_id);
+			$value = $this->prepareExportValue($data, ExportableField::LIST_OF + ExportableField::FORMATTED, $entry_id);
 
 			return parent::prepareTableValue(array('value' => implode(', ', $value)), $link, $entry_id = null);
 		}
@@ -335,6 +344,8 @@
 										+ ExportableField::HANDLE,
 				'listValue' =>			ExportableField::LIST_OF
 										+ ExportableField::VALUE,
+				'listFormatted' =>		ExportableField::LIST_OF
+										+ ExportableField::FORMATTED,
 				'listHandleToValue' =>	ExportableField::LIST_OF
 										+ ExportableField::HANDLE
 										+ ExportableField::VALUE,
@@ -365,6 +376,12 @@
 					$data['value']
 				);
 			}
+			
+			if (isset($data['text']) && is_array($data['text']) === false) {
+				$data['text'] = array(
+					$data['text']
+				);
+			}
 
 			// Handle => Value pairs:
 			if ($mode === $modes->listHandleToValue) {
@@ -378,6 +395,15 @@
 				return isset($data['handle'])
 					? $data['handle']
 					: array();
+			}
+			
+			// Array of formatted with fallback on value:
+			else if ($mode === $modes->listFormatted) {
+				return isset($data['text'])
+					? $data['text']
+					: (isset($data['value'])
+						? $data['value']
+						: array());
 			}
 
 			// Array of values:
@@ -488,5 +514,22 @@
 
 			return $groups;
 		}
-
+		
+	/*-------------------------------------------------------------------------
+	Updates:
+	-------------------------------------------------------------------------*/
+		
+		public static function update_120()
+		{
+			$fields = FieldManager::fetch(null, null, null, 'id', 'remote_selectbox');
+			if (!empty($fields) && is_array($fields)) {
+				foreach ($fields as $fieldId => $field) {
+					$sql = "ALTER TABLE `tbl_entries_data_$fieldId` ADD COLUMN `text` TEXT default NULL";
+					if (!Symphony::Database()->query($sql)) {
+						throw new Exception(__('Could not update table `tbl_entries_data_%s`.', array($fieldId)));
+					}
+				}
+			}
+			return true;
+		}
 	}

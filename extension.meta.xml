@@ -22,6 +22,9 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
+		<release version="1.2.0" date="2020-03-12" min="2.3.3" max="2.x.x">
+			- Save text aa well as value to be able to show text instead of value in display panel
+		</release>
 		<release version="1.1.0" date="2018-04-18" min="2.3.3" max="2.x.x">
 			- PHP7 Compatibility
 		</release>
