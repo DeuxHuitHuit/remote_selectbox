@@ -222,6 +222,21 @@
 			if($flagWithError != null) $wrapper->appendChild(Widget::Error($label, $flagWithError));
 			else $wrapper->appendChild($label);
 		}
+		
+		public function checkPostFieldData($data, &$message, $entry_id = null)
+		{
+			$message = null;
+
+			$has_no_value = is_array($data) ? empty($data['value']) : strlen(trim($data)) == 0;
+
+			if ($this->get('required') === 'yes' && $has_no_value) {
+				$message = __('‘%s’ is a required field.', array($this->get('label')));
+
+				return self::__MISSING_FIELDS__;
+			}
+
+			return self::__OK__;
+		}
 
 		public function processRawFieldData($data, &$status, &$message=null, $simulate=false, $entry_id=NULL){
 			$status = self::__OK__;
