@@ -90,7 +90,18 @@
 		 * @param string $previousVersion
 		 */
 		public function update($previousVersion = false) {
-			return true;
+			$ret = true;
+			
+			if (!$previousVersion) {
+				$previousVersion = '0.0.1';
+			}
+			
+			// less than 1.2.0
+			if ($ret && version_compare($previousVersion, '1.2.0', '<')) {
+				$ret = FieldRemote_Selectbox::update_120();
+			}
+			
+			return $ret;
 		}
 
 		/**
