@@ -15,11 +15,6 @@
 			if (!!data && !!data.length) {
 				var options = [];
 				var selectedValue = t.attr('data-value');
-				var required = ~~t.attr('data-required');
-				
-				if (required) {
-					t.empty();
-				}
 				
 				$.each(data, function (index, d) {
 					var o = $('<option />')
